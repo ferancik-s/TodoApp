@@ -6,3 +6,37 @@
 
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+.todo-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border: solid 1px gray;
+    padding: 2px;
+}
+
+.todo-thing {
+    vertical-align: middle;
+}
+
+.button-checkbox {
+    height: 20px;
+    width: 20px;
+    border-radius: 20%;
+    outline-offset: 9px;
+}
+
+.set {
+    box-shadow: 0 0 0 1pt black;
+    border: solid 3px white;
+    background-color: royalblue;
+}
+
+.unset {
+
+    border: solid 2px black;
+    background-color: white;
+}
+
+

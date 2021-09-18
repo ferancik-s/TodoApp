@@ -16,9 +16,12 @@ Route::get('/', function () {
     return redirect('/todo');
 });
 
-Route::resource('share', \App\Http\Controllers\SharedTodoController::class);
+//Route::resource('share', \App\Http\Controllers\SharedTodoController::class);
 
 Route::resource('/todo', \App\Http\Controllers\TodoController::class);
+
+Route::post('share', [\App\Http\Controllers\TodoController::class, 'share']);
+//Route::post('done', [\App\Http\Controllers\TodoController::class, 'done']);
 
 Auth::routes();
 

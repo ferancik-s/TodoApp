@@ -13,13 +13,23 @@ class CreateTodoListsTable extends Migration
      */
     public function up()
     {
+
+
         Schema::create('todo_lists', function (Blueprint $table) {
             $table->id();
             $table->mediumText('text');
-            $table->integer('category_id');
-            $table->integer('user_id');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('user_id');
             $table->boolean('done');
             $table->timestamps();
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+            $table->foreign('category_id')
+                ->references('id')
+                ->on('categories')
+                ->onDelete('cascade');
         });
     }
 

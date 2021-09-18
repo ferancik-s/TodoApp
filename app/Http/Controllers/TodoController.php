@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Expr\Cast\Int_;
+use Ramsey\Collection\Collection;
 
 
 class TodoController extends Controller
@@ -28,22 +29,43 @@ class TodoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $todos = TodoList::all();
+        // todos for logged in user
+        $users_todos = TodoList::sortable()
+            ->where('user_id', '=', auth()->user()->id)
+            ->paginate(4);
 
+        // all categories
+        $categories = DB::table('categories')->get();
+
+        // all users
         $users = User::all();
 
+        // ids of items that are shared with logged user
         $shared_ids = DB::table('shared_todos')
             ->select('item_id')
             ->where('user_id','=', auth()->user()->id)
             ->get();
 
+        // creates collection of shared items with logged user
+        $shared_todos = [];
+        foreach($shared_ids as $id) {
+            $shared_todos = collect(DB::table('todo_lists')
+                ->where('id', '=', $id->item_id)
+                ->get()
+            );
+        }
+
+        $shared = SharedTodo::all();
+
 
         return view('todo.index', [
-            'todos' => $todos,
+            'users_todos' => $users_todos,
+            'shared_todos' => $shared_todos,
             'users' => $users,
-            'shared' => $shared_ids
+            'shared' => $shared,
+            'categories' => $categories
         ]);
     }
 
@@ -66,16 +88,6 @@ class TodoController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function share_with(Request $request)
-    {
-        dd($request->all());
-        $shared_todos = SharedTodo::create([
-            'user_id' => $request->input('user'),
-            'item_id' => $request->input('')
-        ]);
-
-        return redirect('/todo');
-    }
 
     public function store(Request $request)
     {
@@ -89,6 +101,22 @@ class TodoController extends Controller
         ]);
 
         return redirect('/todo');
+    }
+
+    public function share(Request $request)
+    {
+
+        $shared_todos = SharedTodo::firstOrCreate([
+            'user_id' => $request->input('user'),
+            'item_id' => $request->input('item')
+        ]);
+
+        return redirect('todo');
+    }
+
+    public function done(Request $request)
+    {
+        ////
     }
 
     /**
@@ -122,7 +150,13 @@ class TodoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $todo = TodoList::where('id', $id)
+            ->update([
+                'done' => $request->input('done'),
+        ]);
+
+
+        return redirect('/todo');
     }
 
     /**
