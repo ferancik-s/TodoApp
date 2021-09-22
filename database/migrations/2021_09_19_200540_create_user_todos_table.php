@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSharedTodosTable extends Migration
+class CreateUserTodosTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,13 @@ class CreateSharedTodosTable extends Migration
      */
     public function up()
     {
-        Schema::create('shared_todos', function (Blueprint $table) {
+        Schema::create('user_todo', function (Blueprint $table) {
             $table->id();
-            $table->Biginteger('item_id')->unsigned();
+            $table->Biginteger('todo_id')->unsigned();
             $table->Biginteger('user_id')->unsigned();
+            $table->boolean('shared');
             $table->timestamps();
-            $table->foreign('item_id')
+            $table->foreign('todo_id')
                 ->references('id')
                 ->on('todos')
                 ->onDelete('cascade');
@@ -36,6 +37,6 @@ class CreateSharedTodosTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('shared_todos');
+        Schema::dropIfExists('user_todos');
     }
 }

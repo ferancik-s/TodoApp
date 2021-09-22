@@ -15,6 +15,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(TodoSeeder::class);
 
-        $this->command->info('TodoList table seeded!');
+        $this->command->info('Todos table seeded!');
     }
 }

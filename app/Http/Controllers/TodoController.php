@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\SharedTodo;
-use App\Models\TodoList;
+use App\Models\Todo;
 use App\Models\User;
+use App\Models\UserTodo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +33,10 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         // todos for logged in user
-        $users_todos = TodoList::sortable()
-            ->where('user_id', '=', auth()->user()->id)
+        $users_todos = Todo::sortable()
+            ->whereHas('users', function ($query) {
+                return $query->where('user_id', '=', auth()->user()->id);
+            })
             ->paginate(4);
 
         // all categories
@@ -42,29 +45,11 @@ class TodoController extends Controller
         // all users
         $users = User::all();
 
-        // ids of items that are shared with logged user
-        $shared_ids = DB::table('shared_todos')
-            ->select('item_id')
-            ->where('user_id','=', auth()->user()->id)
-            ->get();
-
-        // creates collection of shared items with logged user
-        $shared_todos = [];
-        foreach($shared_ids as $id) {
-            $shared_todos = collect(DB::table('todo_lists')
-                ->where('id', '=', $id->item_id)
-                ->get()
-            );
-        }
-
-        $shared = SharedTodo::all();
 
 
         return view('todo.index', [
             'users_todos' => $users_todos,
-            'shared_todos' => $shared_todos,
             'users' => $users,
-            'shared' => $shared,
             'categories' => $categories
         ]);
     }
@@ -92,12 +77,21 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         //dd(gettype($request->input('category')));
+        //TODO: update only if first successful
 
-        $todo_item = TodoList::create([
+        $todo_item = Todo::create([
             'text' => $request->input('text'),
             'category_id' => $request->input('category'),
+            //'user_id' => auth()->user()->id,
+            'done' => false,
+        ]);
+
+
+        $user_todo = UserTodo::create([
+            'todo_id' => $todo_item->id,
             'user_id' => auth()->user()->id,
-            'done' => 0,
+
+            'shared' => false,
         ]);
 
         return redirect('/todo');
@@ -106,17 +100,13 @@ class TodoController extends Controller
     public function share(Request $request)
     {
 
-        $shared_todos = SharedTodo::firstOrCreate([
+        $shared_todos = UserTodo::firstOrCreate([
             'user_id' => $request->input('user'),
-            'item_id' => $request->input('item')
+            'todo_id' => $request->input('item'),
+            'shared' => true,
         ]);
 
         return redirect('todo');
-    }
-
-    public function done(Request $request)
-    {
-        ////
     }
 
     /**
@@ -150,7 +140,7 @@ class TodoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $todo = TodoList::where('id', $id)
+        $todo = Todo::where('id', $id)
             ->update([
                 'done' => $request->input('done'),
         ]);

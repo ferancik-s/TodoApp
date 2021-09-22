@@ -42,7 +42,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function todo() {
-        return $this->hasMany(TodoList::class);
+    public function todos() {
+        return $this->belongsToMany(Todo::class, 'user_todo')->withPivot('shared');
     }
 }
